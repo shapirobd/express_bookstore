@@ -6,30 +6,45 @@ const app = require("../app");
 const axios = require("axios");
 const Book = require("../models/book");
 
-const sample_data_1 = {
-	isbn: "0691161518",
-	amazon_url: "http://a.co/eobPtX2",
-	author: "Matthew Lane",
-	language: "english",
-	pages: 264,
-	publisher: "Princeton University Press",
-	title: "Power-Up: Unlocking the Hidden Mathematics in Video Games",
-	year: 2017,
-};
-
-const sample_data_2 = {
-	isbn: "4239058723",
-	amazon_url: "http://a.co/eobPtX3",
-	author: "Brian Shapiro",
-	language: "spanish",
-	pages: 567,
-	publisher: "Princeton University Press",
-	title: "Harry Potter and the Chamber of Secrets",
-	year: 2000,
-};
-
+let sample_data_1;
+let sample_data_1_update;
+let sample_data_2;
 let book;
+
 beforeEach(async function () {
+	sample_data_1 = {
+		isbn: "0691161518",
+		amazon_url: "http://a.co/eobPtX2",
+		author: "Matthew Lane",
+		language: "english",
+		pages: 264,
+		publisher: "Princeton University Press",
+		title: "Power-Up: Unlocking the Hidden Mathematics in Video Games",
+		year: 2017,
+	};
+
+	sample_data_1_update = {
+		isbn: "0691161518",
+		amazon_url: "http://a.co/eobPtX222",
+		author: "Matt Layne",
+		language: "french",
+		pages: 269,
+		publisher: "Princeton University Press",
+		title: "Power-Up: Unlocking the Hidden Mathematics in Video Games",
+		year: 2018,
+	};
+
+	sample_data_2 = {
+		isbn: "4239058723",
+		amazon_url: "http://a.co/eobPtX3",
+		author: "Brian Shapiro",
+		language: "spanish",
+		pages: 567,
+		publisher: "Princeton University Press",
+		title: "Harry Potter and the Chamber of Secrets",
+		year: 2000,
+	};
+
 	await db.query("DELETE FROM books");
 	let {
 		isbn,
@@ -57,7 +72,7 @@ describe("GET /", () => {
 		expect(response.body.books).toEqual([sample_data_1]);
 	});
 });
-describe("GET /:id", () => {
+describe("GET /:isbn", () => {
 	test("Get book with valid isbn", async () => {
 		const response = await request(app).get(`/books/${book.isbn}`);
 		expect(response.status).toEqual(200);
@@ -77,52 +92,408 @@ describe("GET /:id", () => {
 });
 describe("POST /", () => {
 	test("Get proper response with valid request", async () => {
-		console.log(sample_data_2);
 		const response = await request(app).post("/books").send(sample_data_2);
-		console.log(response.body);
 		expect(response.status).toEqual(201);
 		expect(response.body).toEqual({ book: sample_data_2 });
 	});
-	// test("Get error if isbn is missing", async () => {});
-	// test("Get error if isbn is not a string", async () => {});
-	// test("Get error if amazon_url is missing", async () => {});
-	// test("Get error if amazon_url is not a string", async () => {});
-	// test("Get error if author is missing", async () => {});
-	// test("Get error if author is not a string", async () => {});
-	// test("Get error if language is missing", async () => {});
-	// test("Get error if language is not a string", async () => {});
-	// test("Get error if pages is missing", async () => {});
-	// test("Get error if pages is not an integer", async () => {});
-	// test("Get error if publisher is missing", async () => {});
-	// test("Get error if publisher is not a string", async () => {});
-	// test("Get error if title is missing", async () => {});
-	// test("Get error if title is not a string", async () => {});
-	// test("Get error if year is missing", async () => {});
-	// test("Get error if year is not an integer", async () => {});
+	test("Get error if isbn is missing", async () => {
+		delete sample_data_2["isbn"];
+		const response = await request(app).post("/books").send(sample_data_2);
+		expect(response.status).toEqual(400);
+		expect(response.body).toEqual({
+			error: {
+				message: ['instance requires property "isbn"'],
+				status: 400,
+			},
+			message: ['instance requires property "isbn"'],
+		});
+	});
+	test("Get error if isbn is not a string", async () => {
+		sample_data_2["isbn"] = 123;
+		const response = await request(app).post("/books").send(sample_data_2);
+		expect(response.status).toEqual(400);
+		expect(response.body).toEqual({
+			error: {
+				message: ["instance.isbn is not of a type(s) string"],
+				status: 400,
+			},
+			message: ["instance.isbn is not of a type(s) string"],
+		});
+	});
+	test("Get error if amazon_url is missing", async () => {
+		delete sample_data_2["amazon_url"];
+		const response = await request(app).post("/books").send(sample_data_2);
+		expect(response.status).toEqual(400);
+		expect(response.body).toEqual({
+			error: {
+				message: ['instance requires property "amazon_url"'],
+				status: 400,
+			},
+			message: ['instance requires property "amazon_url"'],
+		});
+	});
+	test("Get error if amazon_url is not a string", async () => {
+		sample_data_2["amazon_url"] = 123;
+		const response = await request(app).post("/books").send(sample_data_2);
+		expect(response.status).toEqual(400);
+		expect(response.body).toEqual({
+			error: {
+				message: ["instance.amazon_url is not of a type(s) string"],
+				status: 400,
+			},
+			message: ["instance.amazon_url is not of a type(s) string"],
+		});
+	});
+	test("Get error if author is missing", async () => {
+		delete sample_data_2["author"];
+		const response = await request(app).post("/books").send(sample_data_2);
+		expect(response.status).toEqual(400);
+		expect(response.body).toEqual({
+			error: {
+				message: ['instance requires property "author"'],
+				status: 400,
+			},
+			message: ['instance requires property "author"'],
+		});
+	});
+	test("Get error if author is not a string", async () => {
+		sample_data_2["author"] = 123;
+		const response = await request(app).post("/books").send(sample_data_2);
+		expect(response.status).toEqual(400);
+		expect(response.body).toEqual({
+			error: {
+				message: ["instance.author is not of a type(s) string"],
+				status: 400,
+			},
+			message: ["instance.author is not of a type(s) string"],
+		});
+	});
+	test("Get error if language is missing", async () => {
+		delete sample_data_2["language"];
+		const response = await request(app).post("/books").send(sample_data_2);
+		expect(response.status).toEqual(400);
+		expect(response.body).toEqual({
+			error: {
+				message: ['instance requires property "language"'],
+				status: 400,
+			},
+			message: ['instance requires property "language"'],
+		});
+	});
+	test("Get error if language is not a string", async () => {
+		sample_data_2["language"] = 123;
+		const response = await request(app).post("/books").send(sample_data_2);
+		expect(response.status).toEqual(400);
+		expect(response.body).toEqual({
+			error: {
+				message: ["instance.language is not of a type(s) string"],
+				status: 400,
+			},
+			message: ["instance.language is not of a type(s) string"],
+		});
+	});
+	test("Get error if pages is missing", async () => {
+		delete sample_data_2["pages"];
+		const response = await request(app).post("/books").send(sample_data_2);
+		expect(response.status).toEqual(400);
+		expect(response.body).toEqual({
+			error: {
+				message: ['instance requires property "pages"'],
+				status: 400,
+			},
+			message: ['instance requires property "pages"'],
+		});
+	});
+	test("Get error if pages is not an integer", async () => {
+		sample_data_2["pages"] = "string";
+		const response = await request(app).post("/books").send(sample_data_2);
+		expect(response.status).toEqual(400);
+		expect(response.body).toEqual({
+			error: {
+				message: ["instance.pages is not of a type(s) integer"],
+				status: 400,
+			},
+			message: ["instance.pages is not of a type(s) integer"],
+		});
+	});
+	test("Get error if publisher is missing", async () => {
+		delete sample_data_2["publisher"];
+		const response = await request(app).post("/books").send(sample_data_2);
+		expect(response.status).toEqual(400);
+		expect(response.body).toEqual({
+			error: {
+				message: ['instance requires property "publisher"'],
+				status: 400,
+			},
+			message: ['instance requires property "publisher"'],
+		});
+	});
+	test("Get error if publisher is not a string", async () => {
+		sample_data_2["publisher"] = 123;
+		const response = await request(app).post("/books").send(sample_data_2);
+		expect(response.status).toEqual(400);
+		expect(response.body).toEqual({
+			error: {
+				message: ["instance.publisher is not of a type(s) string"],
+				status: 400,
+			},
+			message: ["instance.publisher is not of a type(s) string"],
+		});
+	});
+	test("Get error if title is missing", async () => {
+		delete sample_data_2["title"];
+		const response = await request(app).post("/books").send(sample_data_2);
+		expect(response.status).toEqual(400);
+		expect(response.body).toEqual({
+			error: {
+				message: ['instance requires property "title"'],
+				status: 400,
+			},
+			message: ['instance requires property "title"'],
+		});
+	});
+	test("Get error if title is not a string", async () => {
+		sample_data_2["title"] = 123;
+		const response = await request(app).post("/books").send(sample_data_2);
+		expect(response.status).toEqual(400);
+		expect(response.body).toEqual({
+			error: {
+				message: ["instance.title is not of a type(s) string"],
+				status: 400,
+			},
+			message: ["instance.title is not of a type(s) string"],
+		});
+	});
+	test("Get error if year is missing", async () => {
+		delete sample_data_2["year"];
+		const response = await request(app).post("/books").send(sample_data_2);
+		expect(response.status).toEqual(400);
+		expect(response.body).toEqual({
+			error: {
+				message: ['instance requires property "year"'],
+				status: 400,
+			},
+			message: ['instance requires property "year"'],
+		});
+	});
+	test("Get error if year is not an integer", async () => {
+		sample_data_2["year"] = "string";
+		const response = await request(app).post("/books").send(sample_data_2);
+		expect(response.status).toEqual(400);
+		expect(response.body).toEqual({
+			error: {
+				message: ["instance.year is not of a type(s) integer"],
+				status: 400,
+			},
+			message: ["instance.year is not of a type(s) integer"],
+		});
+	});
 });
-// describe("PUT /:isbn", () => {
-// 	test("Get proper response with valid request", () => {});
-// 	test("Get error if isbn is missing", () => {});
-// 	test("Get error if isbn is not a string", () => {});
-// 	test("Get error if amazon_url is missing", () => {});
-// 	test("Get error if amazon_url is not a string", () => {});
-// 	test("Get error if author is missing", () => {});
-// 	test("Get error if author is not a string", () => {});
-// 	test("Get error if language is missing", () => {});
-// 	test("Get error if language is not a string", () => {});
-// 	test("Get error if pages is missing", () => {});
-// 	test("Get error if pages is not an integer", () => {});
-// 	test("Get error if publisher is missing", () => {});
-// 	test("Get error if publisher is not a string", () => {});
-// 	test("Get error if title is missing", () => {});
-// 	test("Get error if title is not a string", () => {});
-// 	test("Get error if year is missing", () => {});
-// 	test("Get error if year is not an integer", () => {});
-// });
-// describe("DELETE /:isbn", () => {
-// 	test("Delete book with valid id", () => {});
-// 	test("Return error with invalid id", () => {});
-// });
+describe("PUT /:isbn", () => {
+	test("Get proper response with valid request", async () => {
+		const response = await request(app)
+			.put(`/books/${book.isbn}`)
+			.send(sample_data_1_update);
+		expect(response.status).toEqual(200);
+		expect(response.body).toEqual({ book: sample_data_1_update });
+	});
+	// 	test("Get error if isbn is missing", async () => {
+	// 		delete sample_data_2["isbn"];
+	// 		const response = await request(app).put("/books").send(sample_data_2);
+	// 		expect(response.status).toEqual(400);
+	// 		expect(response.body).toEqual({
+	// 			error: {
+	// 				message: ['instance requires property "isbn"'],
+	// 				status: 400,
+	// 			},
+	// 			message: ['instance requires property "isbn"'],
+	// 		});
+	// 	});
+	// 	test("Get error if isbn is not a string", async () => {
+	// 		sample_data_2["isbn"] = 123;
+	// 		const response = await request(app).put("/books").send(sample_data_2);
+	// 		expect(response.status).toEqual(400);
+	// 		expect(response.body).toEqual({
+	// 			error: {
+	// 				message: ["instance.isbn is not of a type(s) string"],
+	// 				status: 400,
+	// 			},
+	// 			message: ["instance.isbn is not of a type(s) string"],
+	// 		});
+	// 	});
+	// 	test("Get error if amazon_url is missing", async () => {
+	// 		delete sample_data_2["amazon_url"];
+	// 		const response = await request(app).put("/books").send(sample_data_2);
+	// 		expect(response.status).toEqual(400);
+	// 		expect(response.body).toEqual({
+	// 			error: {
+	// 				message: ['instance requires property "amazon_url"'],
+	// 				status: 400,
+	// 			},
+	// 			message: ['instance requires property "amazon_url"'],
+	// 		});
+	// 	});
+	// 	test("Get error if amazon_url is not a string", async () => {
+	// 		sample_data_2["amazon_url"] = 123;
+	// 		const response = await request(app).put("/books").send(sample_data_2);
+	// 		expect(response.status).toEqual(400);
+	// 		expect(response.body).toEqual({
+	// 			error: {
+	// 				message: ["instance.amazon_url is not of a type(s) string"],
+	// 				status: 400,
+	// 			},
+	// 			message: ["instance.amazon_url is not of a type(s) string"],
+	// 		});
+	// 	});
+	// 	test("Get error if author is missing", async () => {
+	// 		delete sample_data_2["author"];
+	// 		const response = await request(app).put("/books").send(sample_data_2);
+	// 		expect(response.status).toEqual(400);
+	// 		expect(response.body).toEqual({
+	// 			error: {
+	// 				message: ['instance requires property "author"'],
+	// 				status: 400,
+	// 			},
+	// 			message: ['instance requires property "author"'],
+	// 		});
+	// 	});
+	// 	test("Get error if author is not a string", async () => {
+	// 		sample_data_2["author"] = 123;
+	// 		const response = await request(app).put("/books").send(sample_data_2);
+	// 		expect(response.status).toEqual(400);
+	// 		expect(response.body).toEqual({
+	// 			error: {
+	// 				message: ["instance.author is not of a type(s) string"],
+	// 				status: 400,
+	// 			},
+	// 			message: ["instance.author is not of a type(s) string"],
+	// 		});
+	// 	});
+	// 	test("Get error if language is missing", async () => {
+	// 		delete sample_data_2["language"];
+	// 		const response = await request(app).put("/books").send(sample_data_2);
+	// 		expect(response.status).toEqual(400);
+	// 		expect(response.body).toEqual({
+	// 			error: {
+	// 				message: ['instance requires property "language"'],
+	// 				status: 400,
+	// 			},
+	// 			message: ['instance requires property "language"'],
+	// 		});
+	// 	});
+	// 	test("Get error if language is not a string", async () => {
+	// 		sample_data_2["language"] = 123;
+	// 		const response = await request(app).put("/books").send(sample_data_2);
+	// 		expect(response.status).toEqual(400);
+	// 		expect(response.body).toEqual({
+	// 			error: {
+	// 				message: ["instance.language is not of a type(s) string"],
+	// 				status: 400,
+	// 			},
+	// 			message: ["instance.language is not of a type(s) string"],
+	// 		});
+	// 	});
+	// 	test("Get error if pages is missing", async () => {
+	// 		delete sample_data_2["pages"];
+	// 		const response = await request(app).put("/books").send(sample_data_2);
+	// 		expect(response.status).toEqual(400);
+	// 		expect(response.body).toEqual({
+	// 			error: {
+	// 				message: ['instance requires property "pages"'],
+	// 				status: 400,
+	// 			},
+	// 			message: ['instance requires property "pages"'],
+	// 		});
+	// 	});
+	// 	test("Get error if pages is not an integer", async () => {
+	// 		sample_data_2["pages"] = "string";
+	// 		const response = await request(app).put("/books").send(sample_data_2);
+	// 		expect(response.status).toEqual(400);
+	// 		expect(response.body).toEqual({
+	// 			error: {
+	// 				message: ["instance.pages is not of a type(s) integer"],
+	// 				status: 400,
+	// 			},
+	// 			message: ["instance.pages is not of a type(s) integer"],
+	// 		});
+	// 	});
+	// 	test("Get error if publisher is missing", async () => {
+	// 		delete sample_data_2["publisher"];
+	// 		const response = await request(app).put("/books").send(sample_data_2);
+	// 		expect(response.status).toEqual(400);
+	// 		expect(response.body).toEqual({
+	// 			error: {
+	// 				message: ['instance requires property "publisher"'],
+	// 				status: 400,
+	// 			},
+	// 			message: ['instance requires property "publisher"'],
+	// 		});
+	// 	});
+	// 	test("Get error if publisher is not a string", async () => {
+	// 		sample_data_2["publisher"] = 123;
+	// 		const response = await request(app).put("/books").send(sample_data_2);
+	// 		expect(response.status).toEqual(400);
+	// 		expect(response.body).toEqual({
+	// 			error: {
+	// 				message: ["instance.publisher is not of a type(s) string"],
+	// 				status: 400,
+	// 			},
+	// 			message: ["instance.publisher is not of a type(s) string"],
+	// 		});
+	// 	});
+	// 	test("Get error if title is missing", async () => {
+	// 		delete sample_data_2["title"];
+	// 		const response = await request(app).put("/books").send(sample_data_2);
+	// 		expect(response.status).toEqual(400);
+	// 		expect(response.body).toEqual({
+	// 			error: {
+	// 				message: ['instance requires property "title"'],
+	// 				status: 400,
+	// 			},
+	// 			message: ['instance requires property "title"'],
+	// 		});
+	// 	});
+	// 	test("Get error if title is not a string", async () => {
+	// 		sample_data_2["title"] = 123;
+	// 		const response = await request(app).put("/books").send(sample_data_2);
+	// 		expect(response.status).toEqual(400);
+	// 		expect(response.body).toEqual({
+	// 			error: {
+	// 				message: ["instance.title is not of a type(s) string"],
+	// 				status: 400,
+	// 			},
+	// 			message: ["instance.title is not of a type(s) string"],
+	// 		});
+	// 	});
+	// 	test("Get error if year is missing", async () => {
+	// 		delete sample_data_2["year"];
+	// 		const response = await request(app).put("/books").send(sample_data_2);
+	// 		expect(response.status).toEqual(400);
+	// 		expect(response.body).toEqual({
+	// 			error: {
+	// 				message: ['instance requires property "year"'],
+	// 				status: 400,
+	// 			},
+	// 			message: ['instance requires property "year"'],
+	// 		});
+	// 	});
+	// 	test("Get error if year is not an integer", async () => {
+	// 		sample_data_2["year"] = "string";
+	// 		const response = await request(app).put("/books").send(sample_data_2);
+	// 		expect(response.status).toEqual(400);
+	// 		expect(response.body).toEqual({
+	// 			error: {
+	// 				message: ["instance.year is not of a type(s) integer"],
+	// 				status: 400,
+	// 			},
+	// 			message: ["instance.year is not of a type(s) integer"],
+	// 		});
+	// 	});
+});
+describe("DELETE /:isbn", () => {
+	test("Delete book with valid id", () => {});
+	test("Return error with invalid id", () => {});
+});
 
 afterAll(async function () {
 	await db.end();
