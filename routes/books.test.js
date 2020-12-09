@@ -523,8 +523,22 @@ describe("PUT /:isbn", () => {
 	});
 });
 describe("DELETE /:isbn", () => {
-	test("Delete book with valid id", () => {});
-	test("Return error with invalid id", () => {});
+	test("Delete book with valid id", async () => {
+		const response = await request(app).delete(`/books/${book.isbn}`);
+		expect(response.status).toEqual(200);
+		expect(response.body).toEqual({ message: "Book deleted" });
+	});
+	test("Return error with invalid id", async () => {
+		const response = await request(app).delete(`/books/6612341254`);
+		expect(response.status).toEqual(404);
+		expect(response.body).toEqual({
+			error: {
+				message: `There is no book with an isbn '6612341254`,
+				status: 404,
+			},
+			message: `There is no book with an isbn '6612341254`,
+		});
+	});
 });
 
 afterAll(async function () {
