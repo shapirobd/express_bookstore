@@ -4,6 +4,7 @@ const db = require("../db");
 const request = require("supertest");
 const app = require("../app");
 const axios = require("axios");
+const Book = require("../models/book");
 
 const sample_data = {
 	isbn: "0691161518",
@@ -16,6 +17,7 @@ const sample_data = {
 	year: 2017,
 };
 
+let book;
 beforeEach(async function () {
 	await db.query("DELETE FROM books");
 	let {
@@ -28,11 +30,13 @@ beforeEach(async function () {
 		title,
 		year,
 	} = sample_data;
-	await db.query(
+	const result = await db.query(
 		`INSERT INTO books (isbn, amazon_url, author, language, pages, publisher, title, year)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING isbn, amazon_url, author, language, pages, publisher, title, year`,
 		[isbn, amazon_url, author, language, pages, publisher, title, year]
 	);
+	book = result.rows[0];
 });
 
 describe("GET /", () => {
@@ -42,10 +46,24 @@ describe("GET /", () => {
 		expect(response.body.books).toEqual([sample_data]);
 	});
 });
-// describe("GET /:id", () => {
-// 	test("Get book with valid id", () => {});
-// 	test("Get error with invalid id", () => {});
-// });
+describe("GET /:id", () => {
+	test("Get book with valid isbn", async () => {
+		const response = await request(app).get(`/books/${book.isbn}`);
+		expect(response.status).toEqual(200);
+		expect(response.body.book).toEqual(sample_data);
+	});
+	test("Get error with invalid isbn", async () => {
+		const response = await request(app).get(`/books/invalid`);
+		expect(response.status).toEqual(404);
+		expect(response.body).toEqual({
+			error: {
+				message: "There is no book with an isbn 'invalid",
+				status: 404,
+			},
+			message: "There is no book with an isbn 'invalid",
+		});
+	});
+});
 // describe("POST /", () => {
 // 	test("Get proper response with valid request", () => {});
 // 	test("Get error if isbn is missing", () => {});
